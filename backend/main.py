@@ -9,14 +9,15 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from rembg import new_session, remove
 
 MAX_FILE_BYTES = 25 * 1024 * 1024
-MAX_PROCESSING_DIMENSION = 2048
+MAX_PROCESSING_DIMENSION = int(os.getenv("MAX_PROCESSING_DIMENSION", "1280"))
 # Some cameras store an ordinary JPEG preview in an MPO container. Treat it as
 # a supported camera JPEG and normalize its first frame before inference.
 ALLOWED_FORMATS = {"JPEG", "MPO", "PNG", "WEBP"}
 ALLOWED_ORIGINS = os.getenv(
     "FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
 ).split(",")
-MODEL_NAME = os.getenv("REMBG_MODEL", "bria-rmbg")
+MODEL_NAME = os.getenv("REMBG_MODEL", "u2netp")
+ENABLE_DECONTAMINATE = os.getenv("ENABLE_DECONTAMINATE", "false").lower() == "true"
 
 app = FastAPI(title="Local Image Background Remover", version="1.0.0")
 app.add_middleware(
@@ -122,7 +123,7 @@ async def remove_background(file: UploadFile = File(...)):
                 working_data,
                 session=active_session,
                 # Remove colors bleeding into hair and soft edge pixels.
-                decontaminate=True,
+                decontaminate=ENABLE_DECONTAMINATE,
             )
         except Exception as refinement_error:
             # Edge cleanup is optional. If it cannot handle a difficult image,

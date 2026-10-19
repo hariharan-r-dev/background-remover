@@ -115,7 +115,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Important hosting note
 
-The BRIA background-removal model is large and CPU intensive. Render's first startup may take several minutes while the model downloads, and free instances may sleep or run out of memory. Interactive MediaPipe removal still works entirely in the frontend even when the optional Render backend is unavailable.
+The Render configuration uses the lightweight `u2netp` model, a 1280 px processing limit, and reduced allocator arenas so it can fit more reliably within a 512 MiB instance. This trades some automatic-removal accuracy for lower memory use. Interactive MediaPipe selection remains the preferred mode for difficult images and works entirely in the frontend.
 
 ## Privacy
 

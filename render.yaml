@@ -12,4 +12,10 @@ services:
       - key: FRONTEND_ORIGINS
         sync: false
       - key: REMBG_MODEL
-        value: bria-rmbg
+        value: u2netp
+      - key: MAX_PROCESSING_DIMENSION
+        value: 1280
+      - key: ENABLE_DECONTAMINATE
+        value: false
+      - key: MALLOC_ARENA_MAX
+        value: 2
