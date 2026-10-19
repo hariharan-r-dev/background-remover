@@ -22,10 +22,10 @@ Do **not** configure Vercel's root as `app`. The `app` folder contains routes on
 
 ## Connect Vercel and Render
 
-Assume these deployment URLs:
+Production deployments:
 
-- Frontend: `https://your-site.vercel.app`
-- Backend: `https://your-api.onrender.com`
+- Frontend: [https://freebgr.vercel.app](https://freebgr.vercel.app)
+- Backend: [https://background-remover-rmdg.onrender.com](https://background-remover-rmdg.onrender.com)
 
 ### 1. Configure Render
 
@@ -39,16 +39,16 @@ Create a Python web service using:
 Add this Render environment variable:
 
 ```text
-FRONTEND_ORIGINS=https://your-site.vercel.app
+FRONTEND_ORIGINS=https://freebgr.vercel.app
 ```
 
 This tells CORS which website may call the API. Do not add a trailing slash. Multiple origins can be separated with commas.
 
 After deployment, verify:
 
-- `https://your-api.onrender.com/`
-- `https://your-api.onrender.com/health`
-- `https://your-api.onrender.com/docs`
+- `https://background-remover-rmdg.onrender.com/`
+- `https://background-remover-rmdg.onrender.com/health`
+- `https://background-remover-rmdg.onrender.com/docs`
 
 ### 2. Configure Vercel
 
@@ -61,7 +61,7 @@ frontend
 Add this Vercel environment variable to Production, Preview, and Development:
 
 ```text
-NEXT_PUBLIC_API_BASE_URL=https://your-api.onrender.com
+NEXT_PUBLIC_API_BASE_URL=https://background-remover-rmdg.onrender.com
 ```
 
 This embeds the public backend address into the browser build. Redeploy the frontend after changing it.

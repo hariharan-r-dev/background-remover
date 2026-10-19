@@ -19,7 +19,7 @@ type Item = {
   error?: string;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://background-remover-rmdg.onrender.com";
 const MAX_FILES = 20;
 const MAX_SIZE = 25 * 1024 * 1024;
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp"];

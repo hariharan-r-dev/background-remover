@@ -14,7 +14,8 @@ MAX_PROCESSING_DIMENSION = int(os.getenv("MAX_PROCESSING_DIMENSION", "1280"))
 # a supported camera JPEG and normalize its first frame before inference.
 ALLOWED_FORMATS = {"JPEG", "MPO", "PNG", "WEBP"}
 ALLOWED_ORIGINS = os.getenv(
-    "FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+    "FRONTEND_ORIGINS",
+    "https://freebgr.vercel.app,http://localhost:3000,http://127.0.0.1:3000",
 ).split(",")
 MODEL_NAME = os.getenv("REMBG_MODEL", "u2netp")
 ENABLE_DECONTAMINATE = os.getenv("ENABLE_DECONTAMINATE", "false").lower() == "true"
