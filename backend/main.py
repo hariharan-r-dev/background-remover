@@ -32,6 +32,16 @@ app.add_middleware(
 session = new_session(MODEL_NAME)
 
 
+@app.get("/")
+def root():
+    return {
+        "service": "Clearcut background removal API",
+        "status": "online",
+        "health": "/health",
+        "docs": "/docs",
+    }
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "model": MODEL_NAME, "processing": "local"}
