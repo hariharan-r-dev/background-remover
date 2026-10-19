@@ -1,5 +1,6 @@
 from io import BytesIO
 import os
+import threading
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,10 +27,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# BRIA RMBG is tuned for isolating the dominant foreground subject. This is a
-# better default than a portrait model that may retain every person in a crowd.
-# Reuse one session so it is loaded only once.
-session = new_session(MODEL_NAME)
+# Model initialization can download hundreds of megabytes. Loading it during
+# module import prevents hosting platforms from seeing an open port in time, so
+# warm it in the background after Uvicorn has started instead.
+session = None
+session_error = None
+session_lock = threading.Lock()
+
+
+def get_model_session():
+    global session, session_error
+    if session is not None:
+        return session
+    with session_lock:
+        if session is None:
+            try:
+                session = new_session(MODEL_NAME)
+                session_error = None
+            except Exception as exc:
+                session_error = f"{type(exc).__name__}: {exc}"
+                raise
+    return session
+
+
+@app.on_event("startup")
+def warm_model_in_background():
+    def warm():
+        try:
+            get_model_session()
+            print(f"Background-removal model ready: {MODEL_NAME}")
+        except Exception as exc:
+            print(f"Model warm-up failed: {type(exc).__name__}: {exc}")
+
+    threading.Thread(target=warm, name="model-warmup", daemon=True).start()
 
 
 @app.get("/")
@@ -44,7 +74,13 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": MODEL_NAME, "processing": "local"}
+    model_status = "ready" if session is not None else "error" if session_error else "loading"
+    return {
+        "status": "ok",
+        "model": MODEL_NAME,
+        "model_status": model_status,
+        "processing": "local",
+    }
 
 
 @app.post("/remove")
@@ -56,6 +92,8 @@ async def remove_background(file: UploadFile = File(...)):
         raise HTTPException(status_code=413, detail="Maximum file size is 25 MB.")
 
     try:
+        active_session = get_model_session()
+
         with Image.open(BytesIO(data)) as image:
             if image.format not in ALLOWED_FORMATS:
                 raise HTTPException(status_code=415, detail="Unsupported image format.")
@@ -82,7 +120,7 @@ async def remove_background(file: UploadFile = File(...)):
         try:
             result = remove(
                 working_data,
-                session=session,
+                session=active_session,
                 # Remove colors bleeding into hair and soft edge pixels.
                 decontaminate=True,
             )
@@ -93,7 +131,7 @@ async def remove_background(file: UploadFile = File(...)):
                 "Edge refinement failed; retrying basic cutout: "
                 f"{type(refinement_error).__name__}: {refinement_error}"
             )
-            result = remove(working_data, session=session)
+            result = remove(working_data, session=active_session)
 
         # Verify the generated result is a valid PNG before returning it.
         with Image.open(BytesIO(result)) as output:
